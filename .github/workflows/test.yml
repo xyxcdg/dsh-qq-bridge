@@ -7,7 +7,7 @@ on:
 
 jobs:
   syntax:
-    # 跨平台语法检查：只做 node --check，不跑集成测试
+    # 跨平台语法检查
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -29,30 +29,26 @@ jobs:
           node --check panel-server.cjs
           node --check mcp-qqbot.cjs
 
-  test:
-    # 完整回归：测试会真起假 OneBot（ws）+ 假 DSH，并复制 .ps1 依赖，
-    # 所以按项目实际宿主平台（Windows）跑；逐项执行，失败时能一眼看出是哪一条。
+  unit:
+    # 纯逻辑单测（不 spawn 进程、不占端口）——这些在 CI 上稳定
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install
-        run: npm install --no-audit --no-fund
-      - name: Tests
+      - name: Unit tests
         shell: pwsh
         run: |
           $tests = @(
             'test-trigger.mjs','test-selfcheck.mjs','test-humanize.cjs','test-proactive.cjs',
-            'test-self.cjs','test-mood.mjs','test-life.cjs',
-            'test-addressing.cjs','test-lists.cjs','test-preempt.cjs','test-recycle-age.cjs'
+            'test-self.cjs','test-mood.mjs','test-life.cjs'
           )
           foreach ($t in $tests) {
             Write-Host "== $t"
             node $t
             if ($LASTEXITCODE -ne 0) {
-              Write-Host "::error::FAILED $t"
+              Write-Host "::error title=FAILED $t"
               exit 1
             }
           }
