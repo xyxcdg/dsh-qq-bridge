@@ -7,12 +7,11 @@ on:
 
 jobs:
   syntax:
-    # 跨平台语法检查
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20, 22]
+        node: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,25 +29,24 @@ jobs:
           node --check mcp-qqbot.cjs
 
   unit:
-    # 纯逻辑单测（不 spawn 进程、不占端口）——这些在 CI 上稳定
+    # 纯逻辑单测：每个测试一个 step，失败时从 step 名直接看出是哪条
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Unit tests
-        shell: pwsh
-        run: |
-          $tests = @(
-            'test-trigger.mjs','test-selfcheck.mjs','test-humanize.cjs','test-proactive.cjs',
-            'test-self.cjs','test-mood.mjs','test-life.cjs'
-          )
-          foreach ($t in $tests) {
-            Write-Host "== $t"
-            node $t
-            if ($LASTEXITCODE -ne 0) {
-              Write-Host "::error title=FAILED $t"
-              exit 1
-            }
-          }
+      - name: test-trigger
+        run: node test-trigger.mjs
+      - name: test-selfcheck
+        run: node test-selfcheck.mjs
+      - name: test-humanize
+        run: node test-humanize.cjs
+      - name: test-proactive
+        run: node test-proactive.cjs
+      - name: test-self
+        run: node test-self.cjs
+      - name: test-mood
+        run: node test-mood.mjs
+      - name: test-life
+        run: node test-life.cjs
