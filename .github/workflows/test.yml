@@ -30,8 +30,8 @@ jobs:
           node --check mcp-qqbot.cjs
 
   test:
-    # 完整回归：测试会真起一个假 OneBot（ws）+ 假 DSH，并复制 .ps1 依赖，
-    # 所以按项目实际宿主平台（Windows）跑。
+    # 完整回归：测试会真起假 OneBot（ws）+ 假 DSH，并复制 .ps1 依赖，
+    # 所以按项目实际宿主平台（Windows）跑；逐项执行，失败时能一眼看出是哪一条。
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,4 +41,18 @@ jobs:
       - name: Install
         run: npm install --no-audit --no-fund
       - name: Tests
-        run: npm test
+        shell: pwsh
+        run: |
+          $tests = @(
+            'test-trigger.mjs','test-selfcheck.mjs','test-humanize.cjs','test-proactive.cjs',
+            'test-self.cjs','test-mood.mjs','test-life.cjs',
+            'test-addressing.cjs','test-lists.cjs','test-preempt.cjs','test-recycle-age.cjs'
+          )
+          foreach ($t in $tests) {
+            Write-Host "== $t"
+            node $t
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::error::FAILED $t"
+              exit 1
+            }
+          }

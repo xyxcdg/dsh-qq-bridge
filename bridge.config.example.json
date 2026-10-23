@@ -167,5 +167,12 @@
   "dshProfile": "headless",
   "nodeExe": "",
   "dshBin": "C:\\path\\to\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js",
-  "self": {}
+  "self": {},
+  "senses": {
+    "enabled": true,
+    "vlm": "qwen2.5vl:3b",
+    "ollama": "http://127.0.0.1:11434",
+    "intervalTicks": 4
+  },
+  "_senses_note": "五官：本地视觉模型看屏幕 + 身体读数。无桌面会话/无 ollama 的环境把它设成 false（否则每次启动会白等截图超时）。"
 }

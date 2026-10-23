@@ -39,7 +39,13 @@ const SELF = require('./self.cjs');
 // 【2026-10-23 五官】眼（本地视觉模型看屏幕）、身体（电量/内存/CPU/前台窗口）、多模型探测。
 // 全部可失败：拿不到就不注入，提示词里绝不写假数据。
 const SENSES = require('./senses.cjs');
+// 五官可关：无桌面会话的环境（CI、无头服务器）截图/探身体会白等超时，配 senses.enabled=false 或 QQ_BOT_SENSES=0。
+// 注意：CFG 在下面才定义，这里只能用函数延后读取（写成顶层常量会 TDZ 崩在启动阶段）。
+function sensesOn() {
+  return process.env.QQ_BOT_SENSES !== '0' && !(CFG.senses && CFG.senses.enabled === false);
+}
 async function refreshBody() {
+  if (!sensesOn()) return;
   try {
     const body = await SENSES.body();
     if (body && body.ok) {
@@ -51,6 +57,7 @@ async function refreshBody() {
   } catch (e) { warn('身体感知失败: ' + (e && e.message)); }
 }
 async function lookOnce(why) {
+  if (!sensesOn()) return;
   try {
     const r = await SENSES.look();
     if (r && r.ok) {

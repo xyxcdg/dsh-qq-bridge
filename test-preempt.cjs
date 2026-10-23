@@ -24,6 +24,7 @@ function setup() {
   cfg.notifyOnStartup = false;
   cfg.sessionLock = { enabled: false };
   cfg.dshBin = path.join(DIR, 'stub-dsh.cjs');
+  cfg.senses = { enabled: false }; // 无头/CI 环境不要截图探身体，否则每次启动白等超时
   cfg.nodeExe = process.execPath;
   cfg.dshCwd = DIR;
   cfg.dshHome = DIR;
