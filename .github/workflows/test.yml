@@ -17,11 +17,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - name: Install
+        run: npm install --no-audit --no-fund
       - name: Syntax check
         run: |
           node --check bridge.js
           node --check humanize.cjs
           node --check proactive.cjs
+          node --check self.cjs
+          node --check mood.cjs
           node --check voice.cjs
-      - name: Unit tests
+      - name: Unit + integration tests
         run: npm test
