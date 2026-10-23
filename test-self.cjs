@@ -37,8 +37,9 @@ S.markSpoken(st, now);
 ok('说过之后不再挂起', S.pendingThought(st, now) === null);
 
 // 5) 深夜会想到催睡；白天不会
-const night = Date.UTC(2026, 9, 22, 15, 30, 0); // UTC 15:30 = 本地 23:30
-const day = Date.UTC(2026, 9, 22, 4, 0, 0);
+// 用「宿主本地时间」构造 23:30 / 12:00：写成 Date.UTC 只在 UTC+8 成立，CI（UTC）会判成白天。
+const night = new Date(2026, 9, 22, 23, 30, 0).getTime();
+const day = new Date(2026, 9, 22, 12, 0, 0).getTime();
 const stn = { attention: { focus: '', at: 0 } };
 const planN = S.think(stn, night, { rand: () => 0.99 });
 const stD = { attention: { focus: '', at: 0 } };

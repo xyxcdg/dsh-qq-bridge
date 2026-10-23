@@ -4,7 +4,8 @@ const M = require('./mood.cjs');
 const H = 3600000;
 let pass = 0, fail = 0;
 const ok = (name, cond, extra) => { if (cond) { pass++; } else { fail++; console.log('FAIL  ' + name + (extra ? '  ->  ' + extra : '')); } };
-const now = new Date('2026-10-22T21:00:00+08:00').getTime();
+// 本地时间 21:00：不能写带 +08:00 的绝对时刻，否则 UTC 机器上会被判成下午。
+const now = new Date(2026, 9, 22, 21, 0, 0).getTime();
 
 // 1 信号识别
 ok('detect 空文本全 0', JSON.stringify(M.detect('')) === JSON.stringify({ praise: 0, scold: 0, soothe: 0, tease: 0, order: 0 }));
