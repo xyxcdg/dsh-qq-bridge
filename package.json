@@ -1,0 +1,33 @@
+{
+  "name": "dsh-qq-bridge",
+  "version": "1.0.0",
+  "description": "把 DeepSeek Harness（或任意命令行 Agent）接进 QQ 的 OneBot11 桥：人格化回复、表情、语音、主动搭话、活动留档、看门狗自愈",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js",
+    "test": "node test/test-trigger.mjs && node test/test-selfcheck.mjs && node test/test-humanize.cjs && node test/test-proactive.cjs",
+    "selftest": "node bridge.js --selftest",
+    "check-stickers": "node bridge.js --check-stickers"
+  },
+  "keywords": [
+    "qq",
+    "onebot",
+    "napcat",
+    "chatbot",
+    "deepseek",
+    "catgirl",
+    "bridge",
+    "agent"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xyxcdg/dsh-qq-bridge.git"
+  }
+}

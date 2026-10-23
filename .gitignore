@@ -1,0 +1,31 @@
+# 运行时产物（每台机器各自生成，绝不入库）
+node_modules/
+bridge.config.json
+state.json
+heartbeat.json
+startup-notice.stamp.json
+bridge.log
+bridge.log.*
+bridge-dup.log
+*.log
+tmp/
+logs/
+
+# 活动留档（含真实 QQ 号与聊天内容）
+activity/
+
+# 语音缓存
+voice/out/
+voice/*.mp3
+voice/*.wav
+
+# 表情包素材（版权不明，自己放自己的）
+stickers/*
+!stickers/README.md
+
+# 备份
+*.bak
+*.bak-*
+*~
+.DS_Store
+Thumbs.db

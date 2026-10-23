@@ -1,0 +1,109 @@
+{
+  "_readme": "复制本文件为 bridge.config.json 再按需修改。所有 _note 开头的键只是说明，删掉不影响运行。",
+  "_paths_note": "dshHome / dshCwd / nodeExe 都可以留空（自动按 DSH_HOME、当前目录、node 自身推断）；dshBin 必须填，指向 DSH 的 CLI 入口 @deepseek-ai/dsh/lib/bin.js。",
+  "onebotWs": "ws://127.0.0.1:3001",
+  "onebotToken": "",
+  "selfQQ": "10001",
+  "masterQQ": "10002",
+  "triggerWord": "喵喵",
+  "allowedGroups": [
+    "100000001"
+  ],
+  "allowedPrivateUsers": [
+    "10002"
+  ],
+  "activityGroups": [],
+  "activityLogDir": "./activity",
+  "_activity_note": "activityGroups 里的群，所有消息（含纯图片、不含触发词）都会原样追加到 activityLogDir/raw/YYYY-MM-DD.jsonl；用于活动/考勤留档。留空即关闭。",
+  "masterOnlyCommands": true,
+  "openTriggerGroups": [],
+  "_openTriggerGroups_note": "列在这里的群不受 masterOnlyCommands 限制：群成员只要带触发词就能下命令（适合开放给同事/部员的群）。",
+  "replyMode": "channel",
+  "_replyMode_note": "channel = 结果回到命令来的那条渠道（群里下的命令，结果发在群里）；private = 一律只私聊主人。隐私优先就设 private。",
+  "groupAck": "",
+  "endSticker": {
+    "enabled": true,
+    "dir": "./stickers",
+    "probability": 0.6
+  },
+  "replyStyle": {
+    "enabled": true,
+    "promptPrefix": "【回复风格·硬要求】你在聊天里扮演一只黏人的猫娘助手：自称「本喵」或「人家」，称呼对方「主人」，句尾常带「喵～」「喵呜」「的说」，可以用颜文字（(=^･ω･^=) / (ฅ´ω`ฅ)）和波浪线，偶尔加一点猫的小动作。但是——姓名、班级、账号、电话号码、数字、名单、日期、文件名、群号必须原样准确，一个字符都不能改，不能因为卖萌而省略、模糊或改写关键信息；名单类结果必须整齐（一行一个、不合并）。",
+    "signature": "—— 主人家的猫娘助手 喵～ (=^･ω･^=)"
+  },
+  "chatStyle": {
+    "enabled": true,
+    "ackDelayMs": 9000,
+    "ackPhrases": [
+      "嗯…让我看看喵～",
+      "好哦，稍等本喵一下 (๑•̀ㅂ•́)و✧"
+    ],
+    "progressDelayMs": 75000,
+    "progressIntervalMs": 90000,
+    "progressPhrases": [
+      "还在弄喵～再等我一下下 (´･ω･`)",
+      "这个有点慢喵…本喵还在跑 {seconds} 秒了都 (ฅ´ω`ฅ)"
+    ],
+    "stickerMidChance": 0.12,
+    "bubbleSplit": {
+      "enabled": true,
+      "maxBubbles": 4,
+      "maxBubbleChars": 260,
+      "minTotalChars": 16,
+      "gapMs": 650,
+      "hardLimit": 1800
+    },
+    "promptBlock": "【人格·不变】你是一只猫娘助手：自称「本喵」或「人家」，称呼对方「主人」，句尾带「喵～」「喵呜」「的说」，可以歪头甩尾巴、可以贴颜文字。\n【说话方式】你是在 QQ 上跟人聊天，不是给系统写回执。\n- 不要出现「收到」「正在处理」「任务已入队」「会话 xxx」「进程/接口/token/桥接」这类机器话。\n- 能一句话答完就只回一句：不寒暄、不复述对方的问题。\n- 内容多的时候自己挑：拆成 2~4 条短消息，或整理成一条清楚的结果（一行一条）。别又拆又总结。\n- 不要用 Markdown 标题、表格、分隔线。\n- 不确定的事就说「本喵去查」，然后真的去查；不要编。",
+    "triggerHint": "在的喵～主人要是想差遣本喵，句子里带上触发词就好啦 (ฅ´ω`ฅ)"
+  },
+  "startupNoticeMinIntervalMs": 21600000,
+  "proactive": {
+    "enabled": false,
+    "_note": "主动搭话：安静 minSilenceMs 之后、每天不超过 maxPerDay 次、quietHours 时段内不说、正在跑任务时不说；模型回 SKIP 就真的不说。默认关闭，打开前先想清楚会不会烦人。",
+    "minSilenceMs": 10800000,
+    "maxPerDay": 2,
+    "quietHours": [
+      23,
+      8
+    ],
+    "checkIntervalMs": 1800000,
+    "probability": 0.5,
+    "maxChars": 60,
+    "stickerChance": 0.5,
+    "prompt": "【主动搭话·很轻的一次，不是任务】现在是 {time}，你和主人的私聊已经安静了 {minutes} 分钟。先判断此刻该不该由你先开口：该，就回一句像人随手发的消息，不超过 30 字，带点猫味；不该（深夜、刚聊完、没什么可说的），只回两个字母 SKIP。"
+  },
+  "voice": {
+    "enabled": false,
+    "_note": "语音回复：engine=auto 先试 edge-tts（需联网）再退 Windows SAPI；pythonExe 指向带 edge-tts 的 python，留空则用 PATH 里的 python。",
+    "engine": "auto",
+    "edgeVoice": "zh-CN-XiaoyiNeural",
+    "rate": "+8%",
+    "pitch": "+0Hz",
+    "sapiVoice": "Microsoft Yaoyao",
+    "replyChance": 0.5,
+    "proactiveChance": 0.8,
+    "maxChars": 100,
+    "privateOnly": true,
+    "keepFiles": 40,
+    "pythonExe": ""
+  },
+  "dshHome": "",
+  "dshCwd": "",
+  "dshProfile": "headless",
+  "nodeExe": "",
+  "dshBin": "C:\\\\Users\\\\<you>\\\\.dsh\\\\plugins\\\\node_modules\\\\@deepseek-ai\\\\dsh\\\\lib\\\\bin.js",
+  "taskTimeoutMs": 900000,
+  "channelTokenBudget": {},
+  "channelScopes": {},
+  "channelContext": {},
+  "_channelContext_note": "按渠道注入「本群职责」，键=group:<群号> 或 private:<QQ号>。例如 {\"group:100000001\": \"这是部门工作群，只允许办公/文档类任务。\"}",
+  "privateRequireTrigger": true,
+  "notifyOnStartup": true,
+  "useJsonEvents": true,
+  "sessionLock": {
+    "enabled": false,
+    "_note": "enabled=true 时永不自动新建会话；sessionId 给默认渠道，pinned 可按渠道钉死。会话在磁盘上消失时会被判为失败而不是静默换新会话。",
+    "sessionId": "",
+    "pinned": {}
+  }
+}

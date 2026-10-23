@@ -1,0 +1,54 @@
+'use strict';
+// 主动搭话「门」的回归测试：可机械检验的判据（安静时长/每日上限/静默时段/忙碌/掷骰）。
+// 用法: node test/test-proactive.cjs
+const assert = require('assert');
+const path = require('path');
+const { proactiveGate, acceptProactive, inQuietHours } = require('../proactive.cjs');
+const CFG = JSON.parse(require('fs').readFileSync(path.join(__dirname, '..', 'bridge.config.example.json'), 'utf8'));
+// 示例配置里默认关闭主动搭话；测试里显式打开，才能验证"条件满足时该开口"。
+CFG.proactive.enabled = true;
+
+let pass = 0;
+const t = (n, fn) => { try { fn(); console.log('  [OK] ' + n); pass++; } catch (e) { console.log('  [FAIL] ' + n + ' :: ' + e.message); process.exitCode = 1; } };
+const now = new Date('2026-10-19T14:00:00+08:00').getTime();
+const baseState = { lastUserAt: { ['private:' + CFG.masterQQ]: now - 4 * 3600 * 1000 }, proactive: { day: '2026-10-19', count: 0 } };
+const g = (over) => proactiveGate(Object.assign({ now, hour: 14, cfg: CFG, state: JSON.parse(JSON.stringify(baseState)), rand: () => 0 }, over));
+
+t('满足条件才开口', () => assert.strictEqual(g({}).allow, true));
+t('正在跑任务不插话', () => assert.strictEqual(g({ busy: true }).reason, 'busy'));
+t('安静时间不够不说', () => {
+  const st = JSON.parse(JSON.stringify(baseState));
+  st.lastUserAt['private:' + CFG.masterQQ] = now - 10 * 60 * 1000;
+  assert.strictEqual(g({ state: st }).reason, 'too-soon');
+});
+t('每天上限', () => {
+  const st = JSON.parse(JSON.stringify(baseState));
+  st.proactive.count = CFG.proactive.maxPerDay;
+  assert.strictEqual(g({ state: st }).reason, 'daily-cap');
+});
+t('换一天计数归零', () => {
+  const st = JSON.parse(JSON.stringify(baseState));
+  st.proactive = { day: '2026-10-18', count: 9 };
+  assert.strictEqual(g({ state: st }).allow, true);
+});
+t('深夜静默', () => {
+  assert.strictEqual(g({ hour: 2 }).reason, 'quiet-hours');
+  assert.strictEqual(g({ hour: 23 }).reason, 'quiet-hours');
+  assert.strictEqual(g({ hour: 12 }).allow, true);
+});
+t('从没聊过不主动开口', () => {
+  assert.strictEqual(g({ state: { lastUserAt: {}, proactive: {} } }).reason, 'no-history');
+});
+t('掷骰没中就不说', () => assert.strictEqual(g({ rand: () => 0.99 }).reason, 'dice'));
+t('关掉就彻底不说', () => {
+  const c = JSON.parse(JSON.stringify(CFG)); c.proactive.enabled = false;
+  assert.strictEqual(g({ cfg: c }).reason, 'disabled');
+});
+t('SKIP / 太长 / 模板泄漏都丢掉', () => {
+  assert.strictEqual(acceptProactive('SKIP').ok, false);
+  assert.strictEqual(acceptProactive('skip，因为主人在忙').ok, false);
+  assert.strictEqual(acceptProactive('喵'.repeat(80)).ok, false);
+  assert.strictEqual(acceptProactive('【主动搭话】在吗').ok, false);
+  assert.strictEqual(acceptProactive('主人还没睡喵？(=^･ω･^=)').ok, true);
+});
+console.log('\n' + (process.exitCode ? 'FAILED' : 'PASS') + ' - ' + pass + ' checks');
