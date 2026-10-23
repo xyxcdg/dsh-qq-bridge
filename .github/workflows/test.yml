@@ -6,7 +6,8 @@ on:
   pull_request:
 
 jobs:
-  test:
+  syntax:
+    # 跨平台语法检查：只做 node --check，不跑集成测试
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,8 +18,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - name: Install
-        run: npm install --no-audit --no-fund
       - name: Syntax check
         run: |
           node --check bridge.js
@@ -27,5 +26,19 @@ jobs:
           node --check self.cjs
           node --check mood.cjs
           node --check voice.cjs
-      - name: Unit + integration tests
+          node --check panel-server.cjs
+          node --check mcp-qqbot.cjs
+
+  test:
+    # 完整回归：测试会真起一个假 OneBot（ws）+ 假 DSH，并复制 .ps1 依赖，
+    # 所以按项目实际宿主平台（Windows）跑。
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Tests
         run: npm test
