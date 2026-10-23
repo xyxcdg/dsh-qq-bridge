@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>大肥鱼 · 控制台</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#0f1216;--card:#171c22;--line:#242c35;--txt:#dbe3ea;--dim:#8b98a5;--ok:#4ade80;--warn:#fbbf24;--bad:#f87171;--acc:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.6 "Segoe UI","Microsoft YaHei",sans-serif}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+h1{font-size:16px;margin:0;font-weight:600}
+.pill{padding:3px 10px;border-radius:99px;background:#20262e;font-size:12px;color:var(--dim)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+main{padding:18px 20px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card h2{margin:0 0 10px;font-size:13px;color:var(--dim);font-weight:600;letter-spacing:.4px}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--dim);font-weight:500}
+pre{margin:0;white-space:pre-wrap;word-break:break-all;font-size:12px;color:#aab6c2;max-height:220px;overflow:auto}
+input,select{background:#0d1116;border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 8px;width:100%}
+input[type=checkbox]{width:auto}label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:4px 0;font-size:13px}
+button{background:#1f2937;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px}
+button:hover{background:#273344}button.primary{background:#1d4ed8;border-color:#1d4ed8}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:13px}
+.kv b{color:var(--dim);font-weight:500}
+.toast{position:fixed;right:18px;bottom:18px;background:#1f2937;border:1px solid var(--line);padding:10px 14px;border-radius:8px;opacity:0;transition:.25s}
+.toast.show{opacity:1}
+</style></head><body>
+<header><h1>大肥鱼 · 控制台</h1>
+<span class="pill" id="acct">账号 —</span><span class="pill" id="brg">桥接 —</span><span class="pill" id="napc">NapCat —</span>
+<span class="pill" id="age">心跳 —</span><span style="flex:1"></span><span class="pill" id="stamp"></span></header>
+<main>
+<section class="card"><h2>账号与会话</h2><div class="kv" id="kv"></div><table id="chan"><thead><tr><th>渠道</th><th>会话</th><th>累计 tokens</th></tr></thead><tbody></tbody></table>
+<div class="row"><button id="btnRestart">重启桥接</button><button id="btnHeal">跑一次自愈</button><button id="btnNotify">全渠道通知</button></div></section>
+<section class="card"><h2>她 / 它此刻的状态</h2><div class="kv" id="selfkv"></div><h2 style="margin-top:12px">心里挂着的事</h2><pre id="thoughts"></pre><h2 style="margin-top:12px">出过的岔子</h2><pre id="habits"></pre></section>
+<section class="card"><h2>配置（改完需要重启桥接才生效）</h2><form id="cfg">
+<label>触发词 <input name="triggerWord" style="width:120px"></label>
+<label>回复去向 <select name="replyMode"><option value="channel">channel（回到发起的渠道）</option><option value="private">private（全部走私聊主人）</option></select></label>
+<label>会话换代阈值（inputTokens） <input name="maxInputTokens" type="number" step="10000" style="width:130px"></label>
+<label>群会话只保留（小时） <input name="maxAgeHours" type="number" min="1" max="720" style="width:100px"></label>
+<label>主动搭话 <input name="proactiveEnabled" type="checkbox"></label>
+<label>群搭话 <input name="groupChimeEnabled" type="checkbox"></label>
+<label>心情引擎 <input name="personaMoodEnabled" type="checkbox"></label>
+<label>语音 <input name="voiceEnabled" type="checkbox"></label>
+<label>称呼·老爹 <input name="addrMaster" style="width:100px"></label>
+<label>称呼·其他人 <input name="addrDefault" style="width:100px"></label>
+<div class="row"><button class="primary" id="btnSave" type="button">保存配置</button><button id="btnReload" type="button">重新读取</button></div>
+</form></section>
+<section class="card"><h2>桥接日志（尾 40 行）</h2><pre id="logBridge"></pre></section>
+<section class="card"><h2>自愈日志（尾 20 行）</h2><pre id="logHeal"></pre></section>
+<section class="card"><h2>NapCat 日志（尾 20 行）</h2><pre id="logNc"></pre></section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+const H={"X-QQBot":"1"};
+function fmt(n){return n==null?"—":String(n)}
+async function j(u,o){const r=await fetch(u,Object.assign({headers:H},o||{}));if(!r.ok)throw new Error(u+" "+r.status);return r.json()}
+function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2200)}
+async function load(){
+  const s=await j("/api/status");
+  document.getElementById("acct").textContent="账号 "+(s.account.online?s.account.nickname+"("+s.account.userId+")":"离线/不可达");
+  document.getElementById("acct").className="pill "+(s.account.online?"ok":"bad");
+  document.getElementById("brg").textContent="桥接 "+(s.bridge.pid?"pid "+s.bridge.pid:"无");
+  document.getElementById("brg").className="pill "+(s.bridge.connected?"ok":"bad");
+  document.getElementById("napc").textContent="NapCat "+(s.ports.onebot?"3001 在":"3001 无")+" / "+(s.ports.webui?"6099 在":"6099 无");
+  document.getElementById("napc").className="pill "+(s.ports.onebot&&s.ports.webui?"ok":"bad");
+  document.getElementById("age").textContent="心跳 "+(s.bridge.ageSec==null?"—":s.bridge.ageSec+" 秒前");
+  document.getElementById("age").className="pill "+((s.bridge.ageSec!=null&&s.bridge.ageSec<90)?"ok":"warn");
+  document.getElementById("stamp").textContent=new Date(s.now).toLocaleString();
+  const kv=document.getElementById("kv");kv.innerHTML="";
+  [["会话锁",s.bridge.sessionLocked?"已启用":"关闭"],["渠道绑定",Object.keys(s.bridge.sessions||{}).length+" 个"],["任务计数",s.bridge.tasks],["NapCat pid",s.napcatPid||"—"]].forEach(([k,v])=>{const b=document.createElement("b");b.textContent=k;const d=document.createElement("span");d.textContent=v;kv.append(b,d)});
+  const tb=document.querySelector("#chan tbody");tb.innerHTML="";
+  const sess=s.bridge.sessions||{},use=s.bridge.usage||{};
+  Object.keys(sess).forEach(k=>{const tr=document.createElement("tr");tr.innerHTML="<td>"+k+"</td><td style=\"font-size:11px;color:#8b98a5\">"+sess[k]+"</td><td>"+(use[k]||0)+"</td>";tb.append(tr)});
+  const sk=document.getElementById("selfkv");sk.innerHTML="";
+  const S=s.self||{};
+  [["第几天",S.day],["回过话",S.turns],["疲惫",S.fatigue],["心情",S.mood],["在意",S.attention]].forEach(([k,v])=>{const b=document.createElement("b");b.textContent=k;const d=document.createElement("span");d.textContent=fmt(v);sk.append(b,d)});
+  document.getElementById("thoughts").textContent=(S.thoughts&&S.thoughts.length)?S.thoughts.join("\n"):"（没有）";
+  document.getElementById("habits").textContent=(S.habits&&S.habits.length)?S.habits.join("\n"):"（没有）";
+  document.getElementById("logBridge").textContent=(s.logs.bridge||[]).join("\n");
+  document.getElementById("logHeal").textContent=(s.logs.selfheal||[]).join("\n");
+  document.getElementById("logNc").textContent=(s.logs.napcat||[]).join("\n");
+}
+async function loadCfg(){
+  const c=await j("/api/config");const f=document.getElementById("cfg");
+  f.triggerWord.value=c.triggerWord||"";f.replyMode.value=c.replyMode||"channel";
+  f.maxInputTokens.value=c.maxInputTokens||250000;f.maxAgeHours.value=c.maxAgeHours||24;
+  f.proactiveEnabled.checked=!!c.proactiveEnabled;f.groupChimeEnabled.checked=!!c.groupChimeEnabled;
+  f.personaMoodEnabled.checked=!!c.personaMoodEnabled;f.voiceEnabled.checked=!!c.voiceEnabled;
+  f.addrMaster.value=c.addrMaster||"";f.addrDefault.value=c.addrDefault||"";
+}
+async function saveCfg(){
+  const f=document.getElementById("cfg");
+  const body={triggerWord:f.triggerWord.value,replyMode:f.replyMode.value,maxInputTokens:Number(f.maxInputTokens.value),maxAgeHours:Number(f.maxAgeHours.value),
+    proactiveEnabled:f.proactiveEnabled.checked,groupChimeEnabled:f.groupChimeEnabled.checked,
+    personaMoodEnabled:f.personaMoodEnabled.checked,voiceEnabled:f.voiceEnabled.checked,
+    addrMaster:f.addrMaster.value,addrDefault:f.addrDefault.value};
+  const r=await j("/api/config",{method:"POST",headers:Object.assign({"Content-Type":"application/json"},H),body:JSON.stringify(body)});
+  toast(r.message||"已保存");
+}
+async function act(a){
+  try{const r=await j("/api/action",{method:"POST",headers:Object.assign({"Content-Type":"application/json"},H),body:JSON.stringify({action:a})});toast(r.message||"已执行")}catch(e){toast("失败: "+e.message)}
+}
+document.getElementById("btnSave").onclick=()=>saveCfg().catch(e=>toast("保存失败: "+e.message));
+document.getElementById("btnReload").onclick=()=>loadCfg().catch(e=>toast("读取失败: "+e.message));
+document.getElementById("btnRestart").onclick=()=>act("restart-bridge");
+document.getElementById("btnHeal").onclick=()=>act("run-selfheal");
+document.getElementById("btnNotify").onclick=()=>act("notify-all");
+loadCfg().catch(()=>{});load().catch(e=>toast("加载失败: "+e.message));setInterval(()=>load().catch(()=>{}),5000);
+</script></body></html>

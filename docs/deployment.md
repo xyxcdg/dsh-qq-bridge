@@ -84,3 +84,29 @@ Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*bridge.js*
 - 升级前备份 `bridge.config.json`、`state.json`、`activity/`；
 - 代码回滚用 git：`git checkout <tag>` 后重启；
 - 配置回滚直接把备份复制回来（桥接只在启动时读配置）。
+
+## 7. 面板 / MCP / 自愈（可选）
+
+**面板**：`npm run panel` → `http://127.0.0.1:8123`。只绑 loopback；改配置走白名单字段，写前自动备份，
+改完提示「重启桥接生效」。需要开机自启就再加一个计划任务（动作仍是 `wscript.exe <隐藏 vbs>`）。
+
+**MCP**：在 `$DSH_HOME/cordis.patch.yml` 的 `- insert:` 列表里追加一项：
+
+```yaml
+- insert:
+    id: qqbot-mcp
+    name: '@deepseek-ai/dsh-mcp-client'
+    config:
+      serverName: qqbot
+      transport: stdio
+      command: node
+      args: ['C:/path/to/dsh-qq-bridge/mcp-qqbot.cjs']
+```
+
+工具在模型侧显示为 `mcp__qqbot__status` / `config_get` / `config_set` / `action` / `panel`。
+
+**账号自愈**：`qq-selfheal.ps1` 用 `qq-probe.cjs` 探测 `get_login_info`（端口在监听不等于能对话），
+离线才重启 NapCat，冷却 5 分钟，连续失败 3 次硬冷却 30 分钟。需要 `QQ_BOT_NAPCAT_VBS` 指向隐藏启动脚本。
+
+**可选引擎**：视觉（ollama 视觉模型）、ASR（`DASHSCOPE_API_KEY` + ffmpeg）、ChatTTS/GPT-SoVITS。
+全部可失败，失败只降级、不影响文字回复。

@@ -81,3 +81,24 @@
 | `QQ_BOT_PYTHON` | 覆盖语音用的 python |
 | `QQ_BOT_STICKER_KEYWORDS` | 抓表情时的默认关键词（逗号分隔） |
 | `DSH_PERMISSION_MODE` / `DSH_TOOLS_MODE` | 透传给 DSH（默认 `danger-full-access` / `ptc`） |
+| `QQ_BOT_DSH_BIN` / `QQ_BOT_NODE` / `QQ_BOT_CWD` | 覆盖对应的路径配置 |
+| `QQ_BOT_GSV_ROOT` | GPT-SoVITS 安装目录（留空=不用） |
+| `QQ_BOT_FFMPEG` | ffmpeg 绝对路径（语音转码 / ASR） |
+| `QQ_BOT_NAPCAT_LOG` | NapCat 控制台日志路径（面板展示用） |
+| `QQ_BOT_NAPCAT_VBS` | NapCat 隐藏启动脚本（自愈脚本用） |
+| `QQ_BOT_ROOT` | 自愈脚本的项目根（默认按脚本位置推断） |
+
+## v1.1 新增
+
+| 键 | 说明 |
+| --- | --- |
+| `triggerAliases` | 触发词别名（逗号分隔） |
+| `privateTriggerForOthers` | 只对非主人生效的「私聊必须带触发词」 |
+| `addressing.master/default/bySex` | 称呼三档；只在 `enabled` 且有 QQ 资料时生效 |
+| `personaMood` | 心情引擎开关、静默时段、最多记几条「委屈」 |
+| `self` | 自我状态（一般留空对象，运行时写入 `state.json`） |
+| `groupChime` | 群聊搭话：`groups` 白名单、`chance`、`minGapMs`、`maxPerDay`、`quietHours`、`keywords` |
+| `sessionRecycle.maxAgeHours / ageScope` | 按年龄换代；`ageScope=group` 时只对群生效 |
+| `preemptAfterMs / maxPreempt` | 插队阈值与每轮最多插队次数 |
+| `turnRetryCount` | 模型传输失败时的静默重试次数 |
+| `imageKeepDays` | 历史图片清理天数 |

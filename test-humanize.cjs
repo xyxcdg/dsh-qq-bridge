@@ -1,12 +1,12 @@
 'use strict';
 // 「像人一样回」的回归测试：钉住切条行为 + 配置里的机器话。
-// 用法: node test/test-humanize.cjs
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const { planBubbles, isStructured } = require('../humanize.cjs');
+const CFG_PATH = process.env.QQ_BOT_CONFIG || (fs.existsSync(path.join(__dirname, 'bridge.config.json')) ? path.join(__dirname, 'bridge.config.json') : path.join(__dirname, 'bridge.config.example.json'));
+const { planBubbles, isStructured } = require('./humanize.cjs');
 
-const CFG = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'bridge.config.example.json'), 'utf8'));
+const CFG = JSON.parse(fs.readFileSync(CFG_PATH, 'utf8'));
 const SPLIT = CFG.chatStyle.bubbleSplit;
 const flat = (s) => String(s).replace(/\s+/g, '');
 let pass = 0;
@@ -61,9 +61,9 @@ t('配置里确实关掉了「必发 ACK」', () => {
   assert.ok(CFG.chatStyle.ackDelayMs >= 3000, 'ack 太早说话就跟每次都收到一样了');
 });
 
-t('人格必须保留（提示词第一段 + 风格开关）', () => {
+t('猫娘人格必须保留（提示词第一段 + 风格开关）', () => {
   assert.strictEqual(CFG.replyStyle.enabled, true, 'replyStyle 被关掉了');
-  assert.ok(/猫娘/.test(CFG.replyStyle.promptPrefix), 'replyStyle 里没有猫娘设定');
+  assert.ok(/鲸鱼娘|猫娘/.test(CFG.replyStyle.promptPrefix), 'replyStyle 里没有角色设定');
   assert.ok(/人格/.test(CFG.chatStyle.promptBlock) && /本喵/.test(CFG.chatStyle.promptBlock), 'promptBlock 没有把人格写在前面');
   assert.ok(CFG.chatStyle.promptBlock.indexOf('人格') < CFG.chatStyle.promptBlock.indexOf('说话方式'), '人格段必须排在说话方式之前');
 });

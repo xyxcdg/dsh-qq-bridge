@@ -1,12 +1,15 @@
 # 运行时产物（每台机器各自生成，绝不入库）
 node_modules/
 bridge.config.json
+bridge.config.json.bak*
 state.json
 heartbeat.json
 startup-notice.stamp.json
+*.stamp
 bridge.log
 bridge.log.*
 bridge-dup.log
+selfheal.log
 *.log
 tmp/
 logs/
@@ -14,8 +17,10 @@ logs/
 # 活动留档（含真实 QQ 号与聊天内容）
 activity/
 
-# 语音缓存
+# 语音缓存与音色模型（体积大 / 版权自负）
 voice/out/
+voice/models/
+voice/galgame/
 voice/*.mp3
 voice/*.wav
 

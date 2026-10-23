@@ -1,13 +1,14 @@
 {
   "name": "dsh-qq-bridge",
-  "version": "1.0.0",
-  "description": "把 DeepSeek Harness（或任意命令行 Agent）接进 QQ 的 OneBot11 桥：人格化回复、表情、语音、主动搭话、活动留档、看门狗自愈",
+  "version": "1.1.0",
+  "description": "把 DeepSeek Harness 接进 QQ 的 OneBot v11 桥：人格化回复、自我状态、心情、语音、表情包、主动搭话、群活动留档、面板与自愈",
   "main": "bridge.js",
   "scripts": {
     "start": "node bridge.js",
-    "test": "node test/test-trigger.mjs && node test/test-selfcheck.mjs && node test/test-humanize.cjs && node test/test-proactive.cjs",
+    "test": "node test-trigger.mjs && node test-selfcheck.mjs && node test-humanize.cjs && node test-proactive.cjs && node test-self.cjs && node test-mood.mjs && node test-life.cjs && node test-addressing.cjs && node test-lists.cjs && node test-preempt.cjs && node test-recycle-age.cjs",
     "selftest": "node bridge.js --selftest",
-    "check-stickers": "node bridge.js --check-stickers"
+    "check-stickers": "node bridge.js --check-stickers",
+    "panel": "node panel-server.cjs"
   },
   "keywords": [
     "qq",
@@ -17,7 +18,8 @@
     "deepseek",
     "catgirl",
     "bridge",
-    "agent"
+    "agent",
+    "mcp"
   ],
   "engines": {
     "node": ">=18"

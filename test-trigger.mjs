@@ -1,12 +1,6 @@
-// 触发词解析的回归测试：与 bridge.js handleEvent 里的实现逐字一致。
-// 用法: node test/test-trigger.mjs
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const CFG = JSON.parse(fs.readFileSync(path.join(HERE, '..', 'bridge.config.example.json'), 'utf8'));
-const trigger = CFG.triggerWord || '喵喵';
+// test-trigger.mjs —— 校验 bridge.js 的触发词解析（与 bridge.js handleEvent 里那段逐字一致）
+// 用法: node test-trigger.mjs
+const trigger = '大肥鱼';
 
 // ↓↓↓ 与 bridge.js handleEvent 中的实现逐字一致 ↓↓↓
 function parse(text) {
@@ -35,13 +29,15 @@ function parse(text) {
 
 const cases = [
   // [输入, 期望 isCmd, 期望 task]
-  [trigger + '自己修复', true, '自己修复'],   // 中文没有词边界：触发词后面直接跟字也算命令
-  [trigger + ' 你好', true, '你好'],
-  [trigger, true, '（无内容）'],
-  [trigger + '，帮我看看', true, '帮我看看'],
-  ['在吗' + trigger, true, '在吗'],           // 触发词在中间
-  ['你好', false, '你好'],
-  ['  ' + trigger + '  测试  ', true, '测试'],
+  ['大肥鱼自己修复', true, '自己修复'],       // ← 本次真实失败的那条
+  ['大肥鱼 你好', true, '你好'],
+  ['大肥鱼', true, '（无内容）'],             // 只有触发词（表情被剥掉后剩这个）
+  ['大肥鱼，帮我看看', true, '帮我看看'],
+  ['大肥鱼！快', true, '快'],
+  ['在吗大肥鱼', true, '在吗'],               // 触发词在中间
+  ['你好', false, '你好'],                    // 不带触发词
+  ['大肥鱼干', true, '干'],                   // 旧规则专门保护的 case；新语义下算命令
+  ['  大肥鱼  测试  ', true, '测试'],
 ];
 
 let bad = 0;

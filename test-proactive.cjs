@@ -1,13 +1,12 @@
 'use strict';
-// 主动搭话「门」的回归测试：可机械检验的判据（安静时长/每日上限/静默时段/忙碌/掷骰）。
-// 用法: node test/test-proactive.cjs
 const assert = require('assert');
+const fs = require('fs');
 const path = require('path');
-const { proactiveGate, acceptProactive, inQuietHours } = require('../proactive.cjs');
-const CFG = JSON.parse(require('fs').readFileSync(path.join(__dirname, '..', 'bridge.config.example.json'), 'utf8'));
-// 示例配置里默认关闭主动搭话；测试里显式打开，才能验证"条件满足时该开口"。
-CFG.proactive.enabled = true;
-
+const { proactiveGate, acceptProactive, inQuietHours } = require('./proactive.cjs');
+const CFG_PATH = process.env.QQ_BOT_CONFIG || (fs.existsSync(path.join(__dirname, 'bridge.config.json')) ? path.join(__dirname, 'bridge.config.json') : path.join(__dirname, 'bridge.config.example.json'));
+// 测试测的是门控逻辑，不能依赖线上开关状态：线上 proactive.enabled 可能是 false，那会把每条断言压成 disabled。
+const RAW = require(CFG_PATH);
+const CFG = Object.assign({}, RAW, { proactive: Object.assign({ enabled: true, maxPerDay: 2, chance: 1, quietHours: [23, 8], minGapMs: 60 * 60 * 1000 }, RAW.proactive, { enabled: true }) }); // FORCED_ENABLED
 let pass = 0;
 const t = (n, fn) => { try { fn(); console.log('  [OK] ' + n); pass++; } catch (e) { console.log('  [FAIL] ' + n + ' :: ' + e.message); process.exitCode = 1; } };
 const now = new Date('2026-10-19T14:00:00+08:00').getTime();
