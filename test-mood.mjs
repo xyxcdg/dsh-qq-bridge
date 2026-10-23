@@ -34,17 +34,19 @@ ok('7 小时后气消完 = calm', m.mood === 'calm', JSON.stringify(m));
 m = M.nextMood({ mood: 'grumpy', intensity: 3, since: now - 3 * H }, { }, now);
 ok('3 小时后强度降 1', m.intensity === 2 && m.mood === 'grumpy', JSON.stringify(m));
 
-// 4 钟点
-ok('凌晨 = sleepy', M.timeOfDayMood(new Date('2026-10-22T02:00:00+08:00').getTime()) === 'sleepy');
-ok('下午 = 无', M.timeOfDayMood(new Date('2026-10-22T15:00:00+08:00').getTime()) === null);
+// 4 钟点（用本地时间构造：带 +08:00 的绝对时刻在 UTC 机器上会变成 18:00）
+const at2 = new Date(2026, 9, 22, 2, 0, 0).getTime();
+const at15 = new Date(2026, 9, 22, 15, 0, 0).getTime();
+ok('凌晨 = sleepy', M.timeOfDayMood(at2) === 'sleepy');
+ok('下午 = 无', M.timeOfDayMood(at15) === null);
 
 // 5 提示块
 ok('calm 无块', M.moodBlock({ mood: 'calm' }, now, {}) === '');
 const b1 = M.moodBlock({ mood: 'sulky', intensity: 2, cause: '被凶了' }, now, {});
 ok('sulky 块含委屈且禁止改数据', b1.includes('委屈') && b1.includes('一个字符都不许改'), b1);
-const b2 = M.moodBlock({ mood: 'calm' }, new Date('2026-10-22T02:00:00+08:00').getTime(), { timeOfDay: 'sleepy' });
+const b2 = M.moodBlock({ mood: 'calm' }, at2, { timeOfDay: 'sleepy' });
 ok('夜里叠加困', b2.includes('困'), b2);
-const b3 = M.moodBlock({ mood: 'grumpy', intensity: 3 }, new Date('2026-10-22T02:00:00+08:00').getTime(), { timeOfDay: 'sleepy' });
+const b3 = M.moodBlock({ mood: 'grumpy', intensity: 3 }, at2, { timeOfDay: 'sleepy' });
 ok('正在炸毛时不叠困', b3.includes('炸毛') && !b3.includes('打哈欠'), b3);
 
 // 6 小账本
